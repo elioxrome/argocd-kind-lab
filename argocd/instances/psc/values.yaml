@@ -1,0 +1,9 @@
+# Overrides propios de la instancia "psc" (equivalente a NPRO-PSC del diagrama).
+# De momento usa tal cual los valores de ../../base-values.yaml.
+# Añade aquí solo lo que diferencie a esta instancia de las demás.
+
+# Los CRDs ya los instala y gestiona la instancia it4t (son cluster-scoped,
+# solo un release puede ser dueño). Ver ../it4t/values.yaml.
+crds:
+  install: false
+

@@ -1,0 +1,10 @@
+# Overrides propios de la instancia "digital" (equivalente a NPRO-DIGITAL del diagrama).
+# Esta es la instancia usada en el ApplicationSet de ejemplo
+# (ver ../applicationsets/digital-guestbook-appset.yaml), por lo demás usa
+# los valores de ../../base-values.yaml.
+
+# Los CRDs ya los instala y gestiona la instancia it4t (son cluster-scoped,
+# solo un release puede ser dueño). Ver ../it4t/values.yaml.
+crds:
+  install: false
+

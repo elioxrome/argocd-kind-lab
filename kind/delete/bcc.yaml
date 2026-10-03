@@ -1,0 +1,8 @@
+# Spoke de aplicaciones para el tipo BCC (equivalente a NPRO-BCC del
+# diagrama). Lo gestiona la instancia argocd-bcc que corre en el hub
+# (ver ../argocd/instances/bcc). Un solo nodo para ahorrar RAM.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: bcc
+nodes:
+  - role: control-plane

@@ -1,0 +1,10 @@
+# Overrides propios de la instancia "it4t" (equivalente a NPRO-IT4T del diagrama).
+# De momento usa tal cual los valores de ../../base-values.yaml.
+# Añade aquí solo lo que diferencie a esta instancia de las demás.
+
+# Los CRDs de Argo (applications.argoproj.io, etc.) son cluster-scoped: solo
+# un release de Helm puede "ser dueño". it4t es la instancia que los instala
+# y gestiona; las demás (digital/eop/psc/bcc) llevan crds.install: false.
+crds:
+  install: true
+

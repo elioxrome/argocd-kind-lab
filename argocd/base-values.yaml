@@ -1,0 +1,63 @@
+# Valores Helm comunes a TODAS las instancias de ArgoCD del hub.
+# Se combinan con instances/<tipo>/values.yaml así:
+#   helm upgrade --install argocd-<tipo> argo-cd -f base-values.yaml -f instances/<tipo>/values.yaml
+#
+# Recursos recortados a propósito: en el diseño real (OpenShift) cada instancia
+# pide por sí sola 0.5-2 vCPU / 1-4 GiB por componente. Aquí corren 5 instancias
+# a la vez en un único nodo kind, así que se bajan los requests/limits para que
+# quepan en un laptop. Para producción real, sube estos valores o usa los del
+# diagrama original.
+
+configs:
+  params:
+    # kind no termina TLS delante del server; servimos HTTP plano tras el Service.
+    server.insecure: true
+
+dex:
+  enabled: false # sin SSO en local
+
+notifications:
+  enabled: false # no se usa en local
+
+redis:
+  # Redis embebido de 1 réplica que trae el propio chart (cache interna de
+  # ArgoCD). No es infraestructura aparte: application-controller y
+  # repo-server lo necesitan para funcionar, así que se deja activo pero
+  # mínimo. No hay redis-ha ni redis externo.
+  enabled: true
+
+controller:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+server:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 96Mi
+    limits:
+      memory: 256Mi
+
+repoServer:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 96Mi
+    limits:
+      memory: 256Mi
+
+applicationSet:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      memory: 128Mi

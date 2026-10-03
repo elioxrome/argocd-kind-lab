@@ -1,0 +1,45 @@
+# Ejemplo del patrón app-of-apps / ApplicationSet (repo de apps -> ArgoCD -> clusters).
+# Usa el generador "clusters" built-in de ArgoCD: enumera automáticamente los
+# Secrets de tipo cluster registrados en este namespace (ver ../register-clusters.sh)
+# y descarta el cluster local porque no tiene la label role=spoke.
+#
+# Requisitos antes de aplicar:
+#   ../up.sh                                # crea, entre otros, el spoke "digital"
+#   ./install.sh digital
+#   ./register-clusters.sh digital           # registra el spoke "digital" (1:1 con el tipo)
+#   kubectl --context kind-hub -n argocd-digital apply -f digital-guestbook-appset.yaml
+#
+# repoURL apunta al repo público de ejemplo de Argo. Sustitúyelo por tu propio
+# repo de aplicaciones (el flujo Bitbucket -> Jenkins -> Argo del diagrama)
+# cuando quieras desplegar algo real.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: guestbook
+  namespace: argocd-digital
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            role: spoke
+  template:
+    metadata:
+      name: "guestbook-{{.name}}"
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/argoproj/argocd-example-apps.git
+        targetRevision: HEAD
+        path: guestbook
+      destination:
+        server: "{{.server}}"
+        namespace: guestbook
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

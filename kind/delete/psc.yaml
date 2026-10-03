@@ -1,0 +1,8 @@
+# Spoke de aplicaciones para el tipo PSC (equivalente a NPRO-PSC del
+# diagrama). Lo gestiona la instancia argocd-psc que corre en el hub
+# (ver ../argocd/instances/psc). Un solo nodo para ahorrar RAM.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: psc
+nodes:
+  - role: control-plane

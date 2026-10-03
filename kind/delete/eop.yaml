@@ -1,0 +1,8 @@
+# Spoke de aplicaciones para el tipo EOP (equivalente a NPRO-EOP del
+# diagrama). Lo gestiona la instancia argocd-eop que corre en el hub
+# (ver ../argocd/instances/eop). Un solo nodo para ahorrar RAM.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: eop
+nodes:
+  - role: control-plane

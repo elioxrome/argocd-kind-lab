@@ -1,0 +1,8 @@
+# Spoke de aplicaciones para el tipo DIGITAL (equivalente a NPRO-DIGITAL del
+# diagrama). Lo gestiona la instancia argocd-digital que corre en el hub
+# (ver ../argocd/instances/digital). Un solo nodo para ahorrar RAM.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: digital
+nodes:
+  - role: control-plane

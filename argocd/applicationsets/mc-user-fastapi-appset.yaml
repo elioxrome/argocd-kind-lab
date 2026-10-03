@@ -1,0 +1,64 @@
+# Microservicio real desplegado vía la instancia argocd-it4t, directo en el
+# hub (sin spoke) con un namespace por entorno.
+#
+# Multi-source: el CHART ya no es charts/mc-user-fastapi de
+# eliox-platform-config, es el chart genérico de
+# https://github.com/elioxrome/generic-charts-ms (repo público, main).
+# Los VALUES siguen viviendo en eliox-platform-config
+# (environments/<env>/mc-user-fastapi-values.yaml) — por eso son dos
+# "sources": una el chart, otra solo para referenciar ese archivo via
+# "$values" (sintaxis multi-source de ArgoCD).
+#
+# nameOverride: mc-user-fastapi va como helm.parameters (no es por-entorno,
+# así que no hace falta tocar los values.yaml de eliox-platform-config) para
+# que los recursos/labels digan "mc-user-fastapi" y no el nombre del chart
+# genérico ("microservice").
+#
+# Generador "list": una entrada por entorno. Para sumar uno nuevo solo
+# agregas un elemento aquí, no hay que copiar el Application entero.
+#
+# Solo "dev" por ahora: su imagen (dev-8-a7f71b75) existe en docker hub.
+# stg (1.0.0-rc) y prd (1.0.0) todavía no tienen imagen publicada — en
+# cuanto exista el tag, agrega su línea abajo ("- env: stg") y ArgoCD lo
+# despliega solo, sin tocar nada más de este archivo.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: mc-user-fastapi
+  namespace: argocd-it4t
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - list:
+        elements:
+          - env: dev
+          # - env: stg   # agregar cuando exista la imagen 1.0.0-rc
+          # - env: prd   # agregar cuando exista la imagen 1.0.0
+  template:
+    metadata:
+      name: "mc-user-fastapi-{{.env}}"
+    spec:
+      project: default
+      sources:
+        - repoURL: https://github.com/elioxrome/generic-charts-ms.git
+          targetRevision: main
+          path: .
+          helm:
+            parameters:
+              - name: nameOverride
+                value: mc-user-fastapi
+            valueFiles:
+              - "$values/environments/{{.env}}/mc-user-fastapi-values.yaml"
+        - repoURL: https://github.com/elioxrome/eliox-platform-config.git
+          targetRevision: gitops
+          ref: values
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "apps-{{.env}}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
