@@ -1,0 +1,24 @@
+# Mismo contenido que environments/dev/mc-user-fastapi-values.yaml en
+# eliox-platform-config. publish-release-chart.sh la envuelve bajo la
+# clave "microservice:" (nombre de la dependencia) y la empaqueta junto
+# con un Chart.yaml que solo declara esa dependencia — esto es lo único
+# que se mantiene a mano por microservicio/entorno.
+#
+# nameOverride obligatorio: sin subchart, los templates ven .Chart.Name
+# del chart genérico ("microservice"), no el nombre real de la app.
+nameOverride: mc-user-fastapi
+replicaCount: 1
+image:
+  repository: docker.io/elioxrom/mc-user-fastapi
+  tag: "dev-8-a7f71b75"
+resources:
+  requests:
+    cpu: 150m
+    memory: 256Mi
+  limits:
+    cpu: 300m
+    memory: 384Mi
+autoscaling:
+  enabled: false
+networkPolicy:
+  enabled: false

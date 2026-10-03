@@ -1,0 +1,56 @@
+# Artifactory OSS, en el hub, como repo Helm interno (sustituye a
+# eliox-platform-config como fuente de los "values" para ArgoCD, vía un
+# repo Helm que aloja charts de values empaquetados).
+#
+# Recortado a propósito para un kind local:
+#   - nginx apagado: se accede directo al Service de artifactory (sin TLS),
+#     vía kubectl port-forward, igual que con las instancias de ArgoCD.
+#   - postgresql SÍ va encendido: esta versión de Artifactory (7.161.x) ya
+#     no soporta Derby, falla duro al iniciar sin Postgres ("Cannot start
+#     the application with a database other than PostgreSQL"). Se recorta
+#     su tamaño de volumen (default del chart: 200Gi) a algo razonable
+#     para un kind local.
+#   - javaOpts/resources recortados al mínimo con el que Artifactory
+#     realmente levanta (menos que esto y el JVM no arranca).
+artifactory:
+  nginx:
+    enabled: false
+
+  postgresql:
+    enabled: true
+    primary:
+      persistence:
+        size: 2Gi
+
+  artifactory:
+    resources:
+      requests:
+        cpu: 250m
+        memory: 1Gi
+      limits:
+        memory: 2Gi
+    javaOpts:
+      xms: "512m"
+      xmx: "1g"
+
+  router:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
+
+  # No lo necesitamos para probar el repo Helm, y con
+  # global.joinKeySecretName (en vez de global.joinKey inline) este
+  # contenedor no encuentra el join-key en la ruta que espera -> crashloop.
+  observability:
+    enabled: false
+
+  frontend:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 256Mi

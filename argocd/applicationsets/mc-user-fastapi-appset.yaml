@@ -1,26 +1,23 @@
 # Microservicio real desplegado vía la instancia argocd-it4t, directo en el
 # hub (sin spoke) con un namespace por entorno.
 #
-# Multi-source: el CHART ya no es charts/mc-user-fastapi de
-# eliox-platform-config, es el chart genérico de
-# https://github.com/elioxrome/generic-charts-ms (repo público, main).
-# Los VALUES siguen viviendo en eliox-platform-config
-# (environments/<env>/mc-user-fastapi-values.yaml) — por eso son dos
-# "sources": una el chart, otra solo para referenciar ese archivo via
-# "$values" (sintaxis multi-source de ArgoCD).
+# ArgoCD no soporta usar un chart Helm como fuente "ref" para $values en
+# multi-source (solo funciona con repos git), así que ya no se separan
+# "chart" y "values" en dos fuentes. El pipeline publica un chart "wrapper"
+# por microservicio/entorno (ver ../../artifactory/publish-release-chart.sh):
+# lo único hecho a mano es un values.yaml; el chart genérico
+# (https://github.com/elioxrome/generic-charts-ms, publicado aparte y
+# versionado por ../../artifactory/publish-chart.sh) se trae como
+# DEPENDENCIA real de Helm y queda vendorizado dentro del .tgz final.
+# ArgoCD solo necesita UNA fuente: ese chart ya versionado y autocontenido.
+# Requiere que ../../artifactory/register-argocd-repo.sh it4t ya haya
+# registrado las credenciales de ese repo en este namespace.
 #
-# nameOverride: mc-user-fastapi va como helm.parameters (no es por-entorno,
-# así que no hace falta tocar los values.yaml de eliox-platform-config) para
-# que los recursos/labels digan "mc-user-fastapi" y no el nombre del chart
-# genérico ("microservice").
-#
-# Generador "list": una entrada por entorno. Para sumar uno nuevo solo
-# agregas un elemento aquí, no hay que copiar el Application entero.
+# Generador "list": una entrada por entorno. Para sumar uno nuevo, publica
+# su release chart (mc-user-fastapi-0.1.0-<env>) y agrega su línea aquí.
 #
 # Solo "dev" por ahora: su imagen (dev-8-a7f71b75) existe en docker hub.
-# stg (1.0.0-rc) y prd (1.0.0) todavía no tienen imagen publicada — en
-# cuanto exista el tag, agrega su línea abajo ("- env: stg") y ArgoCD lo
-# despliega solo, sin tocar nada más de este archivo.
+# stg (1.0.0-rc) y prd (1.0.0) todavía no tienen imagen publicada.
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
@@ -40,19 +37,10 @@ spec:
       name: "mc-user-fastapi-{{.env}}"
     spec:
       project: default
-      sources:
-        - repoURL: https://github.com/elioxrome/generic-charts-ms.git
-          targetRevision: main
-          path: .
-          helm:
-            parameters:
-              - name: nameOverride
-                value: mc-user-fastapi
-            valueFiles:
-              - "$values/environments/{{.env}}/mc-user-fastapi-values.yaml"
-        - repoURL: https://github.com/elioxrome/eliox-platform-config.git
-          targetRevision: gitops
-          ref: values
+      source:
+        repoURL: http://artifactory.artifactory.svc.cluster.local:8082/artifactory/example-repo-local/charts-values
+        chart: mc-user-fastapi
+        targetRevision: "0.1.0-{{.env}}"
       destination:
         server: https://kubernetes.default.svc
         namespace: "apps-{{.env}}"
