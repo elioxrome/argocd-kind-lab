@@ -10,7 +10,7 @@ nameOverride: mc-user-fastapi
 replicaCount: 1
 image:
   repository: docker.io/elioxrom/mc-user-fastapi
-  tag: "dev-8-a7f71b75"
+  tag: "dev-12-ddc70ddc"
 resources:
   requests:
     cpu: 150m
